@@ -1,9 +1,9 @@
-text,prompt_question,prompt_title,prompt_text
-example text 1,Summarize...,Example Title 1,"Heading
+student_id,prompt_id,text,prompt_question,prompt_title,prompt_text
+000000ffffff,abc123,example text 1,Summarize...,Example Title 1,"Heading
 Text..."
-example text 3,Summarize...,Example Title 1,"Heading
+222222cccccc,abc123,example text 3,Summarize...,Example Title 1,"Heading
 Text..."
-example text 2,Summarize...,Example Title 2,"Heading
+111111eeeeee,def789,example text 2,Summarize...,Example Title 2,"Heading
 Text..."
-example text 4,Summarize...,Example Title 2,"Heading
+333333dddddd,def789,example text 4,Summarize...,Example Title 2,"Heading
 Text..."

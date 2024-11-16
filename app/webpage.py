@@ -1,5 +1,6 @@
 # Importaciones necesarias
 from tensorflow.keras.models import load_model
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 import numpy as np
 import streamlit as st
 import joblib
@@ -11,7 +12,6 @@ from streamlit_option_menu import option_menu
 from st_aggrid import AgGrid
 import nltk
 from nltk.corpus import stopwords
-from tensorflow.keras.models import load_model
 
 nltk.download('stopwords')
 print(stopwords.words('english'))
@@ -28,9 +28,9 @@ model_options = {
         "content_model": "../models/svr/modelo_content.pkl",
         "wording_model": "../models/svr/modelo_wording.pkl"
     },
-    "RNN": {
-        "content_model": "../models/rnn",
-    },
+    # "RNN": {
+    #     "content_model": "../models/rnn",
+    # },
 }
 
 model_promts = {
@@ -41,7 +41,6 @@ model_promts = {
 }
 
 model_prompt_titles = ["The Third Wave", "Excerpt from The Jungle", "Egyptian Social Structure", "On Tragedy"]
-
 model_prompt_text = [ "Background \n The Third Wave experiment", "With one member trimming beef", "Egyptian society was structured", "Chapter 13 \n As the sequel"]
 
 # Clase para manejar la predicción con dos modelos
@@ -49,10 +48,13 @@ class PrediccionRequest:
     def __init__(self, content_model_path, wording_model_path, rnn_model, text: str, prompt_id: str):
         self.content_model = self.load_model(content_model_path)
         self.wording_model = self.load_model(wording_model_path)
-        self.rnn_model = load_model(model_options["RNN"])
+        self.rnn_model = rnn_model
         self.text = text
         self.prompt_id = prompt_id
         self.features = self.preprocess_text()
+        self.scaler_mlr = self.load_model('./models/mlr/scaler.joblib')
+        self.poly_mlr = self.load_model('./models/mlr/poly_features.joblib')
+
 
     def load_model(self, model_path):
         # Cargar el modelo dependiendo de su extensión
@@ -69,6 +71,20 @@ class PrediccionRequest:
         # Procesamiento de texto para extraer características
         if chosen_model == "RNN":
             return self.text
+        elif chosen_model == "MLR":
+            features = {
+                "student_id": int("000e8c3c7ddb", 16),
+                "prompt_id": int(self.prompt_id, 16),
+                "text_length": len(self.text),
+                "word_count": len(self.text.split()),
+                "number_count": len([word for word in self.text.split() if word.isnumeric()]),
+                "punctuation_count": len([char for char in self.text if char in ['.', ',', '!', '?', ';', ':', '-', '(', ')', '"', "'"]]),
+                "stopword_count": len([word for word in self.text.split() if word in stopwords.words('english')])
+            }            
+            feature_array = np.array(list(features.values())).reshape(1, -1)
+            feature_scaled = self.scaler_mlr.transform(feature_array)
+            feature_poly = self.poly_mlr.transform(feature_scaled)  
+            return feature_poly
         else:
             features = {
                 "student_id": int("000e8c3c7ddb", 16),
@@ -119,7 +135,7 @@ if st.button("Realizar Predicción"):
     if chosen_model == "RNN":
         prediccion_request = PrediccionRequest( None, None,rnn_model_path, input_text, prompt_id)
     else:
-        prediccion_request = PrediccionRequest(content_model_path, wording_model_path, input_text, prompt_id)
+        prediccion_request = PrediccionRequest(content_model_path, wording_model_path, None, input_text, prompt_id)
 
     content_pred, wording_pred = prediccion_request.predict()
     

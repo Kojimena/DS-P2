@@ -4,9 +4,14 @@ import pandas as pd
 import tensorflow as tf
 import pickle
 
-MODEL = tf.keras.models.load_model("../../models/rnn.keras")
-with open("../../models/tokenizer.pickle", "rb") as f:
-    TOKENIZER = pickle.load(f)
+
+def load_models():
+    model = tf.keras.models.load_model("../../models/rnn.keras")
+    with open("../../models/tokenizer.pickle", "rb") as f:
+        tokenizer = pickle.load(f)
+
+    return model, tokenizer
+
 
 def predict(text: str, prompt: str) -> tuple[float, float]:
     """
@@ -15,7 +20,7 @@ def predict(text: str, prompt: str) -> tuple[float, float]:
     :param prompt: Pregunta asociada al texto.
     :return: Resultados de la predicción (content, wording).
     """
-    global MODEL, TOKENIZER
+    MODEL, TOKENIZER = load_models()
 
     row_df = pd.DataFrame([{'text': text, 'prompt_text': prompt}])
 

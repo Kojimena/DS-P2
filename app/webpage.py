@@ -21,15 +21,15 @@ print(stops)
 # Configuración de los modelos disponibles
 model_options = {
     "MLR": {
-        "content_model": "./models/mlr/modelo_content.joblib",
-        "wording_model": "./models/mlr/modelo_wording.joblib"
+        "content_model": "../models/mlr/modelo_content.joblib",
+        "wording_model": "../models/mlr/modelo_wording.joblib"
     },
     "SVR": {
-        "content_model": "./models/svr/modelo_content.pkl",
-        "wording_model": "./models/svr/modelo_wording.pkl"
+        "content_model": "../models/svr/modelo_content.pkl",
+        "wording_model": "../models/svr/modelo_wording.pkl"
     },
     "RNN": {
-        "content_model": "./models/rnn",
+        "content_model": "../models/rnn",
     },
 }
 

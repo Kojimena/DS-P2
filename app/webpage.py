@@ -1,37 +1,17 @@
 # Importaciones necesarias
-from tensorflow.keras.models import load_model
-from sklearn.preprocessing import StandardScaler, PolynomialFeatures
-import numpy as np
-import streamlit as st
-import joblib
-import pickle
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+from predictors.rnn import predict as rnn_predict
+from predictors.mlr import predict as mlr_predict
+from predictors.bert import predict as bert_predict
+
+import streamlit as st
 from streamlit_option_menu import option_menu
 from st_aggrid import AgGrid
-import nltk
-from nltk.corpus import stopwords
 
-nltk.download('stopwords')
-print(stopwords.words('english'))
-stops = set(stopwords.words('english'))
-print(stops)
-
-# Configuración de los modelos disponibles
-model_options = {
-    "MLR": {
-        "content_model": "../models/mlr/modelo_content.joblib",
-        "wording_model": "../models/mlr/modelo_wording.joblib"
-    },
-    "SVR": {
-        "content_model": "../models/svr/modelo_content.pkl",
-        "wording_model": "../models/svr/modelo_wording.pkl"
-    },
-    # "RNN": {
-    #     "content_model": "../models/rnn",
-    # },
-}
 
 model_promts = {
     "39c16e": "Summarize at least 3 elements of an ideal tragedy, as described by Aristotle.",
@@ -43,102 +23,112 @@ model_promts = {
 model_prompt_titles = ["The Third Wave", "Excerpt from The Jungle", "Egyptian Social Structure", "On Tragedy"]
 model_prompt_text = [ "Background \n The Third Wave experiment", "With one member trimming beef", "Egyptian society was structured", "Chapter 13 \n As the sequel"]
 
+
+model_options = ["RNN", "MLR", "BERT"]
+
 # Clase para manejar la predicción con dos modelos
 class PrediccionRequest:
-    def __init__(self, content_model_path, wording_model_path, rnn_model, text: str, prompt_id: str):
-        self.content_model = self.load_model(content_model_path)
-        self.wording_model = self.load_model(wording_model_path)
-        self.rnn_model = rnn_model
+    def __init__(self, text: str, prompt_id: str):
         self.text = text
         self.prompt_id = prompt_id
-        self.features = self.preprocess_text()
-        self.scaler_mlr = self.load_model('./models/mlr/scaler.joblib')
-        self.poly_mlr = self.load_model('./models/mlr/poly_features.joblib')
+
+    def predict(self, model):
+        if model == "RNN":
+            return rnn_predict(self.text, model_promts[self.prompt_id])
+        elif model == "MLR":
+            return mlr_predict(self.text)
+        elif model == "BERT":
+            #return bert_predict(self.text, model_promts[self.prompt_id])  
+            return [0, 0]          
 
 
-    def load_model(self, model_path):
-        # Cargar el modelo dependiendo de su extensión
-        if model_path.endswith('.joblib'):
-            return joblib.load(model_path)
-        elif model_path.endswith('.pkl'):
-            with open(model_path, 'rb') as f:
-                return pickle.load(f)
-        else:
-            raise ValueError("Formato de archivo no soportado. Usa '.joblib' o '.pkl'.")
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
-    # student_id,prompt_id,text,content,wording,prompt_question,prompt_title,prompt_text,text_length,word_count,number_count,punctuation_count,stopword_count
-    def preprocess_text(self):
-        # Procesamiento de texto para extraer características
-        if chosen_model == "RNN":
-            return self.text
-        elif chosen_model == "MLR":
-            features = {
-                "student_id": int("000e8c3c7ddb", 16),
-                "prompt_id": int(self.prompt_id, 16),
-                "text_length": len(self.text),
-                "word_count": len(self.text.split()),
-                "number_count": len([word for word in self.text.split() if word.isnumeric()]),
-                "punctuation_count": len([char for char in self.text if char in ['.', ',', '!', '?', ';', ':', '-', '(', ')', '"', "'"]]),
-                "stopword_count": len([word for word in self.text.split() if word in stopwords.words('english')])
-            }            
-            feature_array = np.array(list(features.values())).reshape(1, -1)
-            feature_scaled = self.scaler_mlr.transform(feature_array)
-            feature_poly = self.poly_mlr.transform(feature_scaled)  
-            return feature_poly
-        else:
-            features = {
-                "student_id": int("000e8c3c7ddb", 16),
-                "prompt_id": int(self.prompt_id, 16),
-                "text_length": len(self.text),
-                "word_count": len(self.text.split()),
-                "number_count": len([word for word in self.text.split() if word.isnumeric()]),
-                "punctuation_count": len([char for char in self.text if char in ['.', ',', '!', '?', ';', ':', '-', '(', ')', '"', "'"]]),
-                "stopword_count": len([word for word in self.text.split() if word in stopwords.words('english')])
-            }
-            print(features)
-            return np.array(list(features.values()))
+    .custom-font {
+        font-family: 'Montserrat', sans-serif;
+    }
+            
+    h1.custom-font{
+        font-size: 32px;
+        color: #d0ece7;
+    }
+    .st-emotion-cache-15hul6a {
+        background-color: #138d75 !important;
+        color: white !important;
+        border: none;
+        padding: 10px 20px !important;
+        border-radius: 5px;
+        font-size: 16px !important;
+        font-weight: bold;
+        cursor: pointer !important;
+    }
 
-    def predict(self):
-        content_prediction = self.content_model.predict(self.features.reshape(1, -1))
-        wording_prediction = self.wording_model.predict(self.features.reshape(1, -1))
-        return content_prediction[0], wording_prediction[0]  # Retorna ambas predicciones
+    .st-emotion-cache-15hul6a {
+        background-color: #117a65;
+    }
+            
+    .result-box {
+        background-color: #f0f0f0;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        font-family: 'Roboto', sans-serif;
+        color: #333;
+        font-size: 24px;
+        font-weight: bold;
+    }
+            
+    label.st-emotion-cache-1qg05tj.e1y5xkzn3 {
+        display: none;
+    }
+            
+    </style>
+    """, unsafe_allow_html=True)
 
-chosen_model = st.sidebar.selectbox("Selecciona el modelo para la predicción:", list(model_options.keys()))
-if chosen_model == "RNN":
-    rnn_model_path = model_options[chosen_model]
-    # dropdown de los prompts
-else:
-    content_model_path = model_options[chosen_model]["content_model"]
-    wording_model_path = model_options[chosen_model]["wording_model"]
-    prompt_val = option_menu("Selecciona el prompt a usar:", list(model_promts.values()))
+with st.sidebar:
+    selected = option_menu(None, ["Predecir", "Acerca del dataset", "Ideas para mejorar"],
+        icons=['clipboard2-data-fill', 'bar-chart', 'database'],
+        menu_icon="cast", default_index=0, orientation="vertical",
+        styles={
+            "container": {"padding": "0!important", "background-color": "#000"},
+            "icon": {"font-size": "25px"}, 
+            "nav-link": {"font-size": "25px", "text-align": "left", "margin":"0px", "--hover-color": "#0e6655"},
+            "nav-link-selected": {"background-color": "#16a085"},
+        }
+    )
 
-    for key, value in model_promts.items():
-        if value == prompt_val:
-            prompt_id = key
+if selected == "Predecir":
+    st.markdown('<h1 class="custom-font">Predicción de contenido y redacción</h1>', unsafe_allow_html=True)
 
-    st.write(f"Prompt seleccionado: {prompt_id}")
+    st.markdown('<p class="custom-font"> Selecciona el modelo a utilizar: </p>', unsafe_allow_html=True)
+    chosen_model = st.selectbox("", model_options)
 
-    # dropdown de los prompts_title
-    prompt_title_val = option_menu("Selecciona el prompt_title a usar:", model_prompt_titles)
+    st.markdown('<p class="custom-font"> Selecciona el texto a predecir: </p>', unsafe_allow_html=True)
+    input_text = st.text_area(" ")
 
-    # dropdown de los prompts_text
-    prompt_text_val = option_menu("Selecciona el prompt_text a usar:", model_prompt_text)
+    if chosen_model == "BERT" or chosen_model == "RNN":
+        st.markdown('<p class="custom-font"> Selecciona el prompt a utilizar: </p>', unsafe_allow_html=True)
+        promts = list(model_promts.values())
+        prompt_selected = st.selectbox("", promts)        
 
-st.sidebar.success(f"Modelos de '{chosen_model}' seleccionados para 'content' y 'wording'.")
+    btn = st.button("Realizar predicción")
 
-st.title("Predicción de contenido y calidad de textos, usando modelos de: " + chosen_model)
-
-
-input_text = st.text_area("Introduce el texto para la predicción:")
-if st.button("Realizar Predicción"):
-    # Crear la instancia de predicción con ambos modelos
-    if chosen_model == "RNN":
-        prediccion_request = PrediccionRequest( None, None,rnn_model_path, input_text, prompt_id)
-    else:
-        prediccion_request = PrediccionRequest(content_model_path, wording_model_path, None, input_text, prompt_id)
-
-    content_pred, wording_pred = prediccion_request.predict()
-    
-    # Mostrar los resultados
-    st.write(f"Predicción de 'content': {content_pred}")
-    st.write(f"Predicción de 'wording': {wording_pred}")
+    if btn:
+        if chosen_model == "MLR":
+            pred = mlr_predict(input_text)
+            st.write(f"Predicción de contenido: {pred[0]:.2f}%")
+            st.write(f"Predicción de redacción: {pred[1]:.2f}%")
+        elif chosen_model == "RNN":
+            pred = rnn_predict(input_text, prompt_selected)
+            st.write(f"Predicción de contenido: {pred[0]:.2f}")
+            st.write(f"Predicción de redacción: {pred[1]:.2f}")
+        elif chosen_model == "BERT":
+            pred = bert_predict(input_text, prompt_selected)
+            st.write(f"Predicción de contenido: {pred[0]:.2f}")
+            st.write(f"Predicción de redacción: {pred[1]:.2f}")
+elif selected == "Acerca del dataset":
+    dataset = pd.read_csv("./data/Finaltrain.csv")
+    st.markdown('<h1 class="custom-font">Acerca del dataset</h1>', unsafe_allow_html=True)
+    st.write(dataset.head())

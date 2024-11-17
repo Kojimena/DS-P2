@@ -6,8 +6,8 @@ import pickle
 
 
 def load_models():
-    model = tf.keras.models.load_model("../../models/rnn.keras")
-    with open("../../models/tokenizer.pickle", "rb") as f:
+    model = tf.keras.models.load_model("../models/rnn.keras")
+    with open("../models/tokenizer.pickle", "rb") as f:
         tokenizer = pickle.load(f)
 
     return model, tokenizer

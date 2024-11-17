@@ -103,13 +103,13 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 with st.sidebar:
-    selected = option_menu(None, ["Predecir", "Acerca del dataset"],
-        icons=['clipboard2-data-fill', 'bar-chart'],
+    selected = option_menu(None, ["Predecir", "Acerca del dataset", "Acerca de los modelos"],
+        icons=['clipboard2-data-fill', 'bar-chart', 'info-circle-fill'],
         menu_icon="cast", default_index=0, orientation="vertical",
         styles={
             "container": {"padding": "0!important", "background-color": "#000"},
             "icon": {"font-size": "25px"}, 
-            "nav-link": {"font-size": "25px", "text-align": "left", "margin":"0px", "--hover-color": "#0e6655"},
+            "nav-link": {"font-size": "20px", "text-align": "left", "margin":"0px", "--hover-color": "#0e6655"},
             "nav-link-selected": {"background-color": "#16a085"},
         }
     )
@@ -223,3 +223,25 @@ elif selected == "Acerca del dataset":
     fig, ax = plt.subplots()
     sns.histplot(dataset["wording"], kde=True, ax=ax)
     st.pyplot(fig)
+
+elif selected == "Acerca de los modelos":
+    st.markdown('<h1 class="custom-font">Acerca de los modelos</h1>', unsafe_allow_html=True)
+
+    st.markdown('<p class="custom-font"> Perdida de BERT </p>', unsafe_allow_html=True)
+    st.image("./assets/bert/bert1.png", use_column_width=True)
+    st.image("./assets/bert/bert2.png", use_column_width=True)
+    st.image("./assets/bert/bert3.png", use_column_width=True)
+
+    st.markdown('<p class="custom-font"> Perdida de RNN </p>', unsafe_allow_html=True)
+    st.image("./assets/rnn/rnn1.png", use_column_width=True)
+    st.image("./assets/rnn/rnn2.png", use_column_width=True)
+    st.image("./assets/rnn/rnn3.png", use_column_width=True)
+
+    st.markdown('<p class="custom-font"> Perdida de SVM </p>', unsafe_allow_html=True)
+    st.image("./assets/svm/svm1.png", use_column_width=True)
+    st.image("./assets/svm/svm2.png", use_column_width=True)
+    st.image("./assets/svm/svm3.png", use_column_width=True)
+    st.image("./assets/svm/svm4.png", use_column_width=True)
+
+    st.markdown('<p class="custom-font"> Perdida de MLR </p>', unsafe_allow_html=True)
+    st.image("./assets/mlr/mlr1.png", use_column_width=True)

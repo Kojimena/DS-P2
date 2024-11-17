@@ -214,12 +214,12 @@ elif selected == "Acerca del dataset":
     st.markdown('<p class="custom-font"> Estadísticas del dataset </p>', unsafe_allow_html=True)
     st.write(dataset.describe())
 
-    st.markdown('<p class="custom-font"> Distribución de las calificaciones </p>', unsafe_allow_html=True)
+    st.markdown('<p class="custom-font"> Distribución de content </p>', unsafe_allow_html=True)
     fig, ax = plt.subplots()
     sns.histplot(dataset["content"], kde=True, ax=ax)
     st.pyplot(fig)
 
-    st.markdown('<p class="custom-font"> Distribución de las calificaciones por ensayo </p>', unsafe_allow_html=True)
+    st.markdown('<p class="custom-font"> Distribución de wording </p>', unsafe_allow_html=True)
     fig, ax = plt.subplots()
     sns.histplot(dataset["wording"], kde=True, ax=ax)
     st.pyplot(fig)

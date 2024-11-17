@@ -10,9 +10,9 @@ nltk.download('stopwords')
 stops = set(stopwords.words('english'))
 
 # Rutas de los modelos
-CONTENT_MODEL_PATH = 'models/svm/svr_content.joblib'
-WORDING_MODEL_PATH = 'models/svm/svr_wording.joblib'
-SCALER_PATH = 'models/svm/scaler.joblib'
+CONTENT_MODEL_PATH = '../models/svm/svr_content.joblib'
+WORDING_MODEL_PATH = '../models/svm/svr_wording.joblib'
+SCALER_PATH = '../models/svm/scaler.joblib'
 
 # Cargar los modelos
 try:

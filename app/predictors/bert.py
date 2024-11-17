@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from transformers import BertTokenizer, BertModel
 import pandas as pd
+import time
 
 # Definir la clase BERTModel para que coincida con el modelo que entrenaste anteriormente
 class BERTModel(nn.Module):
@@ -39,6 +40,8 @@ model.to(device)
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 def predict(text, prompt):
+    # Tiempo de ejecucion
+    start_time = time.time()
     
     # Concatenar el prompt con el texto de entrada
     input_text = f"{prompt} {text}"
@@ -70,8 +73,13 @@ def predict(text, prompt):
     with torch.no_grad():
         outputs = model(input_ids, attention_mask)
         content_pred, wording_pred = outputs.cpu().numpy()[0]
+    
+    end_time = time.time()
+    
+    # Calcular el tiempo de ejecución
+    elapsed_time = end_time - start_time
 
-    return desescalar(content_pred), desescalar(wording_pred)
+    return desescalar(content_pred), desescalar(wording_pred), elapsed_time
 
 def desescalar(value):
     """
@@ -87,7 +95,8 @@ if __name__ == '__main__':
     prompt = "Summarize how the Third Wave developed over such a short period of time and why the experiment was ended."
 
     # Realizar la predicción
-    content, wording = predict(text, prompt)
+    content, wording, tiempoEjecucion = predict(text, prompt)
     print(f"Predicted Content Score: {content:.2f}")
     print(f"Predicted Wording Score: {wording:.2f}")
+    print(f"Tiempo de ejecución: {tiempoEjecucion:.2f} segundos")
 

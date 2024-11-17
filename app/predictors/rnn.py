@@ -3,6 +3,7 @@ import pandas as pd
 
 import tensorflow as tf
 import pickle
+from time import time
 
 
 def load_models():
@@ -20,6 +21,7 @@ def predict(text: str, prompt: str) -> tuple[float, float]:
     :param prompt: Pregunta asociada al texto.
     :return: Resultados de la predicción (content, wording).
     """
+    start = time()
     MODEL, TOKENIZER = load_models()
 
     row_df = pd.DataFrame([{'text': text, 'prompt_text': prompt}])
@@ -36,8 +38,9 @@ def predict(text: str, prompt: str) -> tuple[float, float]:
 
     content_pred = desescalar(content_pred[0][0])
     wording_pred = desescalar(wording_pred[0][0])
+    final = time() - start
 
-    return content_pred, wording_pred
+    return content_pred, wording_pred, final
 
 
 def desescalar(value):

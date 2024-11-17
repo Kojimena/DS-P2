@@ -5,6 +5,7 @@ import tensorflow as tf
 import pickle
 import nltk
 from nltk.corpus import stopwords
+from time import time
 
 nltk.download('stopwords')
 print(stopwords.words('english'))
@@ -19,7 +20,7 @@ poly = "../models/mlr/poly_features.joblib"
 feature_scaler = joblib.load(scaler)
 poly_features = joblib.load(poly)
 
-def predict(text) -> tuple[float, float]:
+def predict(text) -> tuple[float, float, float]:
     """
     Realiza una predicción de contenido y redacción para una fila de datos.
     :param text: Texto del estudiante.
@@ -27,7 +28,7 @@ def predict(text) -> tuple[float, float]:
     :return: Resultados de la predicción (content, wording).
     """
     # Load text    content = joblib.load(content_model)
-
+    start = time()
     # Extract features
     features = extract_features(text)
     
@@ -42,7 +43,10 @@ def predict(text) -> tuple[float, float]:
     content_pred = content.predict(feature_poly)
     wording_pred = wording.predict(feature_poly)
 
-    return desescalar(content_pred[0]), desescalar(wording_pred[0])
+    final = time() - start
+    print(f"Tiempo de predicción: {final} segundos")
+
+    return desescalar(content_pred[0]), desescalar(wording_pred[0]), final
 
 def extract_features(text: str) -> dict:
     return {

@@ -6,7 +6,7 @@ import seaborn as sns
 
 from predictors.rnn import predict as rnn_predict
 from predictors.mlr import predict as mlr_predict
-#from predictors.bert import predict as bert_predict
+from predictors.bert import predict as bert_predict
 
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -148,10 +148,9 @@ if selected == "Predecir":
             st.dataframe(df_resultados)
 
         elif chosen_model == "BERT":
-            """ pred = bert_predict(input_text, prompt_selected)
+            pred = bert_predict(input_text, prompt_selected)
             st.write(f"Predicción de contenido: {pred[0]:.2f}")
-            st.write(f"Predicción de redacción: {pred[1]:.2f}") """
-            st.write("Modelo BERT no disponible")
+            st.write(f"Predicción de redacción: {pred[1]:.2f}")
         elif chosen_model == "SVM":
             st.write("Modelo SVM no disponible")
         elif chosen_model == "Todos":

@@ -21,10 +21,14 @@ class BERTModel(nn.Module):
         output = self.linear2(output)
         return output
 
-# Cargar el modelo guardado
+# Cargar el modelo guardado, mapeándolo al dispositivo correcto
 model_path = '../models/bert/bert.pth'
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = BERTModel()
-model.load_state_dict(torch.load(model_path))
+
+# Mapear al dispositivo actual
+model.load_state_dict(torch.load(model_path, map_location=device))
+model.to(device)
 model.eval()
 
 # Definir el dispositivo

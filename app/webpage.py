@@ -6,7 +6,7 @@ import seaborn as sns
 
 from predictors.rnn import predict as rnn_predict
 from predictors.mlr import predict as mlr_predict
-from predictors.bert import predict as bert_predict
+#from predictors.bert import predict as bert_predict
 
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -24,7 +24,7 @@ model_prompt_titles = ["The Third Wave", "Excerpt from The Jungle", "Egyptian So
 model_prompt_text = [ "Background \n The Third Wave experiment", "With one member trimming beef", "Egyptian society was structured", "Chapter 13 \n As the sequel"]
 
 
-model_options = ["RNN", "MLR", "BERT"]
+model_options = ["RNN", "MLR", "BERT", "SVM", "Todos"]
 
 # Clase para manejar la predicción con dos modelos
 class PrediccionRequest:
@@ -34,13 +34,22 @@ class PrediccionRequest:
 
     def predict(self, model):
         if model == "RNN":
-            return rnn_predict(self.text, model_promts[self.prompt_id])
+            return rnn_predict(self.text, self.prompt_id)
         elif model == "MLR":
             return mlr_predict(self.text)
         elif model == "BERT":
             #return bert_predict(self.text, model_promts[self.prompt_id])  
-            return [0, 0]          
-
+            return [0, 0]      
+        elif model == "SVM":
+            return [0, 0]   
+        elif model == "Todos":
+            result = {
+                "RNN": rnn_predict(self.text, self.prompt_id),
+                "MLR": mlr_predict(self.text),
+                "BERT": [0, 0],
+                "SVM": [0, 0]
+            }
+            return result
 
 st.markdown("""
     <style>
@@ -89,7 +98,7 @@ st.markdown("""
 
 with st.sidebar:
     selected = option_menu(None, ["Predecir", "Acerca del dataset", "Ideas para mejorar"],
-        icons=['clipboard2-data-fill', 'bar-chart', 'database'],
+        icons=['clipboard2-data-fill', 'bar-chart', 'lightbulb'],
         menu_icon="cast", default_index=0, orientation="vertical",
         styles={
             "container": {"padding": "0!important", "background-color": "#000"},
@@ -100,7 +109,7 @@ with st.sidebar:
     )
 
 if selected == "Predecir":
-    st.markdown('<h1 class="custom-font">Predicción de contenido y redacción</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="custom-font">Predicción de contenido y redacción de resumenes</h1>', unsafe_allow_html=True)
 
     st.markdown('<p class="custom-font"> Selecciona el modelo a utilizar: </p>', unsafe_allow_html=True)
     chosen_model = st.selectbox("", model_options)
@@ -108,27 +117,90 @@ if selected == "Predecir":
     st.markdown('<p class="custom-font"> Selecciona el texto a predecir: </p>', unsafe_allow_html=True)
     input_text = st.text_area(" ")
 
-    if chosen_model == "BERT" or chosen_model == "RNN":
+    if chosen_model == "BERT" or chosen_model == "RNN" or chosen_model == "Todos":
         st.markdown('<p class="custom-font"> Selecciona el prompt a utilizar: </p>', unsafe_allow_html=True)
         promts = list(model_promts.values())
-        prompt_selected = st.selectbox("", promts)        
+        prompt_selected = st.selectbox("", promts)   
 
     btn = st.button("Realizar predicción")
 
     if btn:
         if chosen_model == "MLR":
             pred = mlr_predict(input_text)
-            st.write(f"Predicción de contenido: {pred[0]:.2f}%")
-            st.write(f"Predicción de redacción: {pred[1]:.2f}%")
+            resultados = {
+                "Modelo": ["MLR"],
+                "Predicción de Contenido": [pred[0]],
+                "Predicción de Redacción": [pred[1]]
+            }
+            df_resultados = pd.DataFrame(resultados)
+            st.markdown('<h3 class="custom-font">Resultados de la predicción</h3>', unsafe_allow_html=True)
+            st.dataframe(df_resultados)
+
         elif chosen_model == "RNN":
             pred = rnn_predict(input_text, prompt_selected)
-            st.write(f"Predicción de contenido: {pred[0]:.2f}")
-            st.write(f"Predicción de redacción: {pred[1]:.2f}")
+            resultados = {
+                "Modelo": ["RNN"],
+                "Predicción de Contenido": [pred[0]],
+                "Predicción de Redacción": [pred[1]]
+            }
+            df_resultados = pd.DataFrame(resultados)
+            st.markdown('<h3 class="custom-font">Resultados de la predicción</h3>', unsafe_allow_html=True)
+            st.dataframe(df_resultados)
+
         elif chosen_model == "BERT":
-            pred = bert_predict(input_text, prompt_selected)
+            """ pred = bert_predict(input_text, prompt_selected)
             st.write(f"Predicción de contenido: {pred[0]:.2f}")
-            st.write(f"Predicción de redacción: {pred[1]:.2f}")
+            st.write(f"Predicción de redacción: {pred[1]:.2f}") """
+            st.write("Modelo BERT no disponible")
+        elif chosen_model == "SVM":
+            st.write("Modelo SVM no disponible")
+        elif chosen_model == "Todos":
+            pred = PrediccionRequest(input_text, prompt_selected).predict("Todos")
+            resultados = {
+                "Modelo": ["RNN", "MLR"],
+                "Predicción de Contenido": [pred['RNN'][0], pred['MLR'][0]],
+                "Predicción de Redacción": [pred['RNN'][1], pred['MLR'][1]]
+            }
+            df_resultados = pd.DataFrame(resultados)
+
+            st.markdown('<h3 class="custom-font">Resultados de la predicción</h3>', unsafe_allow_html=True)
+            st.dataframe(df_resultados)
+
+            st.markdown('<h3 class="custom-font">Comparación de contenido</h3>', unsafe_allow_html=True)
+            plt.figure(figsize=(10, 6))
+            sns.barplot(x='Modelo', y='Predicción de Contenido', data=df_resultados, palette='Blues')
+            plt.title("Comparación de Predicción de Contenido entre Modelos")
+            plt.xlabel("Modelo")
+            plt.ylabel("Valor Predicción de Contenido")
+            plt.tight_layout()
+            st.pyplot(plt)
+
+            st.markdown('<h3 class="custom-font">Comparación de redacción</h3>', unsafe_allow_html=True)
+            plt.figure(figsize=(10, 6))
+            sns.barplot(x='Modelo', y='Predicción de Redacción', data=df_resultados, palette='Greens')
+            plt.title("Comparación de Predicción de Redacción entre Modelos")
+            plt.xlabel("Modelo")
+            plt.ylabel("Valor Predicción de Redacción")
+            plt.tight_layout()
+            st.pyplot(plt)
+
 elif selected == "Acerca del dataset":
-    dataset = pd.read_csv("./data/Finaltrain.csv")
+    dataset = pd.read_csv("../data/Finaltrain.csv")
     st.markdown('<h1 class="custom-font">Acerca del dataset</h1>', unsafe_allow_html=True)
+    st.code("dataset = pd.read_csv('../data/Finaltrain.csv')")
+
+    st.markdown('<p class="custom-font"> El dataset contiene las siguientes columnas </p>', unsafe_allow_html=True)
     st.write(dataset.head())
+
+    st.markdown('<p class="custom-font"> Estadísticas del dataset </p>', unsafe_allow_html=True)
+    st.write(dataset.describe())
+
+    st.markdown('<p class="custom-font"> Distribución de las calificaciones </p>', unsafe_allow_html=True)
+    fig, ax = plt.subplots()
+    sns.histplot(dataset["content"], kde=True, ax=ax)
+    st.pyplot(fig)
+
+    st.markdown('<p class="custom-font"> Distribución de las calificaciones por ensayo </p>', unsafe_allow_html=True)
+    fig, ax = plt.subplots()
+    sns.histplot(dataset["wording"], kde=True, ax=ax)
+    st.pyplot(fig)

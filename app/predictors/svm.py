@@ -4,6 +4,7 @@ from sklearn.preprocessing import StandardScaler
 import nltk
 from nltk.corpus import stopwords
 nltk.download('stopwords')
+from time import time
 
 
 # Definir la lista de palabras vacías
@@ -25,7 +26,8 @@ except FileNotFoundError as e:
     exit(1)
 
 
-def predict(text: str) -> tuple[float, float]: 
+def predict(text: str) -> tuple[float, float, float]:
+    start = time()
     """
     Realiza una predicción de contenido y redacción para una fila de datos.
     :param text: Texto del estudiante.
@@ -40,7 +42,9 @@ def predict(text: str) -> tuple[float, float]:
     content_pred = svr_content.predict(feature_scaled)
     wording_pred = svr_wording.predict(feature_scaled)
 
-    return desescalar(content_pred[0]), desescalar(wording_pred[0])
+    final = time() - start
+
+    return desescalar(content_pred[0]), desescalar(wording_pred[0]), final
     
     
 def extract_features(text: str) -> dict:

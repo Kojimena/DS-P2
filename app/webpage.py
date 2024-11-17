@@ -174,7 +174,8 @@ if selected == "Predecir":
             resultados = {
                 "Modelo": ["SVM"],
                 "Predicción de Contenido": [pred[0]],
-                "Predicción de Redacción": [pred[1]]
+                "Predicción de Redacción": [pred[1]],
+                "Tiempo de predicción": [pred[2]]
             }
             df_resultados = pd.DataFrame(resultados)
             st.markdown('<h3 class="custom-font">Resultados de la predicción</h3>', unsafe_allow_html=True)
@@ -193,8 +194,8 @@ if selected == "Predecir":
 
             st.markdown('<h3 class="custom-font">Tiempos de predicción</h3>', unsafe_allow_html=True)
             times = {
-                "Modelo": ["RNN", "MLR", "BERT"],
-                "Tiempo de predicción": [pred['RNN'][2], pred['MLR'][2], pred['BERT'][2]]
+                "Modelo": ["RNN", "MLR", "BERT", "SVM"],
+                "Tiempo de predicción": [pred['RNN'][2], pred['MLR'][2], pred['BERT'][2], pred['SVM'][2]]
             }
             df_times = pd.DataFrame(times)
             fig, ax = plt.subplots()
